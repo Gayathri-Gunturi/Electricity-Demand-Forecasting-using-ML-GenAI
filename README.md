@@ -1,162 +1,212 @@
-Electricity Demand Forecasting using ML & GenAI
+# ⚡ Smart Energy Forecasting
 
-An end-to-end machine learning project for electricity demand forecasting, peak-demand detection, workload-shifting simulation, and GenAI-powered energy insights.
+An end-to-end **Machine Learning + Generative AI** system for electricity demand forecasting, peak-demand detection, workload-shifting simulation, and AI-powered energy insights.
 
-The system forecasts the next-hour electricity load, identifies potential peak-demand periods, simulates shifting flexible workloads away from peak periods, and uses an LLM to explain the results in natural language.
+The system forecasts the **next-hour electricity demand**, estimates **peak-demand probability**, simulates shifting flexible workloads away from peak periods, and uses an LLM to convert the numerical results into concise natural-language insights.
 
-🚀 Features
-Electricity Load Forecasting
-Predicts next-hour electricity demand using historical load patterns.
-Uses lag-based and time-based features.
-Uses HistGradientBoostingRegressor.
-Peak-Demand Detection
-Learns a peak threshold from the training data.
-Uses HistGradientBoostingClassifier to estimate peak probability.
-Uses a probability threshold of 20% for peak warnings.
-Workload-Shifting Simulation
-Simulates shifting flexible electricity demand away from a predicted peak.
-Calculates the resulting simulated load.
-Determines whether the simulated load falls below the peak threshold.
-GenAI Energy Assistant
-Uses Groq's openai/gpt-oss-120b model.
-Converts numerical forecasting results into concise natural-language insights.
-Explains peak risk and simulated workload shifting.
-Uses only the provided forecasting and simulation data.
-🏗️ System Architecture
-Historical Electricity Data
-            │
-            ▼
-    Data Preparation
-            │
-            ▼
-    Feature Engineering
-            │
-            ▼
-    Load Forecasting Model
-            │
-            ├──────────────► Predicted Load
-            │
-            ▼
-     Peak Classifier
-            │
-            ▼
-      Peak Probability
-            │
-            ▼
-   Workload-Shift Simulation
-            │
-            ▼
-     Simulated Load
-            │
-            ▼
-     GenAI Energy Assistant
-            │
-            ▼
- Natural-Language Energy Insight
-📊 Dataset
+---
 
-This project uses the Electricity Load Diagrams 2011–2014 dataset from the UCI Machine Learning Repository.
+## 🚀 Features
 
-The project uses an hourly aggregated version of the dataset containing:
+### 📈 Electricity Load Forecasting
 
-321 electricity-consumption time series
-Hourly observations
-Data covering 2012–2014
-Electricity consumption measured in kW
+* Predicts next-hour electricity demand using historical load patterns.
+* Uses lag-based and time-based features.
+* Uses `HistGradientBoostingRegressor`.
+* Evaluated using MAE and RMSE.
+* Compared against a naive previous-hour baseline.
 
-For the initial forecasting model, one representative time series (T1) is used.
+### 🔴 Peak-Demand Detection
 
-⚙️ Feature Engineering
+* Learns the peak-demand threshold from training data.
+* Uses the **95th percentile** of training load to define peak demand.
+* Uses `HistGradientBoostingClassifier` to estimate peak probability.
+* Uses a probability threshold to generate peak warnings.
+* Considers peak recall because peak observations are relatively rare.
 
-The forecasting model uses the following features:
+### ⚡ Workload-Shifting Simulation
 
-Feature	Description
-hour	Hour of the day
-day_of_week	Day of the week
-lag_1	Previous hour's load
-lag_2	Load from 2 hours earlier
-lag_3	Load from 3 hours earlier
-lag_6	Load from 6 hours earlier
-lag_12	Load from 12 hours earlier
-lag_24	Load from the previous day
-lag_168	Load from the previous week
+Simulates a **what-if scenario** where flexible electricity demand is shifted away from a predicted peak period.
 
-A chronological 80/20 train-test split is used to preserve the temporal order of the data.
+Example:
 
-🤖 Machine Learning Models
-Load Forecasting
-HistGradientBoostingRegressor
-
-Final test performance:
-
-Metric	Value
-MAE	3.67 kW
-RMSE	7.57 kW
-
-A naive previous-hour baseline achieved:
-
-Metric	Baseline
-MAE	4.18 kW
-RMSE	9.80 kW
-
-The final forecasting model therefore improves upon the naive baseline on both metrics.
-
-Peak Detection
-
-The peak threshold is calculated from the 95th percentile of the training load:
-
-Peak threshold = 72 kW
-
-The classifier estimates the probability that the upcoming load belongs to the peak-demand class.
-
-Because peak observations are relatively rare, peak recall is considered alongside overall accuracy.
-
-⚡ Workload-Shifting Simulation
-
-The project also includes a simple what-if simulation for flexible electricity workloads.
-
-For example:
-
+```text
 Predicted load       = 82 kW
 Peak threshold       = 72 kW
 Flexible workload    = 15 kW
 
 Without shifting:
-
 82 kW → Peak
 
-Simulated workload shifting:
-
+After simulated shifting:
 82 - 15 = 67 kW
 
-Result:
-
 67 kW → Below peak threshold
+```
 
-This is a simulation only. It does not represent an actual reduction in electricity consumption.
+> **Note:** Workload shifting is a simulation only. It does not represent an actual reduction in electricity consumption.
 
-🧠 GenAI Energy Assistant
+### 🧠 GenAI Energy Assistant
 
-The GenAI layer receives the forecasting and simulation results and generates a concise explanation.
+Uses **Groq's `openai/gpt-oss-120b`** model to explain forecasting and simulation results.
 
-Example:
+The assistant can describe:
 
+* Expected electricity demand
+* Peak-demand likelihood
+* Effect of simulated workload shifting
+* A practical recommendation based only on the supplied results
+
+The prompt is designed to prevent the LLM from inventing information such as electricity prices, appliances, savings, weather conditions, or equipment.
+
+---
+
+## 🏗️ System Architecture
+
+```text
+                 Historical Electricity Data
+                           │
+                           ▼
+                    Data Preparation
+                           │
+                           ▼
+                   Feature Engineering
+                           │
+                           ▼
+                ┌──────────────────────┐
+                │  Load Forecast Model │
+                └──────────────────────┘
+                           │
+                           ▼
+                    Predicted Load
+                           │
+                           ▼
+                ┌──────────────────────┐
+                │  Peak Classifier     │
+                └──────────────────────┘
+                           │
+                           ▼
+                   Peak Probability
+                           │
+                           ▼
+               Workload-Shift Simulation
+                           │
+                           ▼
+                    Simulated Load
+                           │
+                           ▼
+                ┌──────────────────────┐
+                │ GenAI Energy         │
+                │ Assistant            │
+                └──────────────────────┘
+                           │
+                           ▼
+                 Natural-Language Insight
+```
+
+---
+
+## 📊 Dataset
+
+This project uses the **Electricity Load Diagrams 2011–2014** dataset from the UCI Machine Learning Repository.
+
+The processed dataset contains:
+
+* **321 electricity-consumption time series**
+* Hourly observations
+* Data covering 2012–2014
+* Electricity consumption measured in kW
+
+For the initial forecasting model, one representative time series (**T1**) is used.
+
+**Dataset DOI:** `10.24432/C58C86`
+
+---
+
+## ⚙️ Feature Engineering
+
+The forecasting model uses historical load and temporal features.
+
+| Feature       | Description                 |
+| ------------- | --------------------------- |
+| `hour`        | Hour of the day             |
+| `day_of_week` | Day of the week             |
+| `lag_1`       | Previous hour's load        |
+| `lag_2`       | Load from 2 hours earlier   |
+| `lag_3`       | Load from 3 hours earlier   |
+| `lag_6`       | Load from 6 hours earlier   |
+| `lag_12`      | Load from 12 hours earlier  |
+| `lag_24`      | Load from the previous day  |
+| `lag_168`     | Load from the previous week |
+
+A chronological **80/20 train-test split** is used to preserve the temporal ordering of the data.
+
+---
+
+## 🤖 Machine Learning Models
+
+### Load Forecasting
+
+**Model:** `HistGradientBoostingRegressor`
+
+#### Test Performance
+
+| Metric |       Model | Naive Baseline |
+| ------ | ----------: | -------------: |
+| MAE    | **3.67 kW** |        4.18 kW |
+| RMSE   | **7.57 kW** |        9.80 kW |
+
+The machine learning model improves upon the previous-hour naive baseline on both evaluation metrics.
+
+### Peak Detection
+
+The peak threshold is calculated using the **95th percentile of the training load**.
+
+```text
+Peak threshold = 72 kW
+```
+
+The classifier estimates the probability that the upcoming load belongs to the peak-demand class.
+
+Because peak observations are relatively rare, **peak recall is considered alongside overall classification performance**.
+
+---
+
+## 🧠 GenAI Pipeline
+
+The GenAI layer receives structured numerical results from the forecasting pipeline.
+
+### Input
+
+```text
 Predicted load: 82 kW
 Peak threshold: 72 kW
 Peak probability: 78%
 Flexible workload: 15 kW
-Simulated load after shifting: 67 kW
+Simulated load: 67 kW
+```
 
-The assistant can explain:
+### Output
 
+The LLM converts these values into a concise energy insight covering:
+
+```text
 Expected demand
-Peak-demand likelihood
-Effect of simulated workload shifting
-A practical recommendation
+        ↓
+Peak-demand assessment
+        ↓
+Effect of workload shifting
+        ↓
+Practical recommendation
+```
 
-The prompt is designed to prevent the model from inventing electricity prices, savings, appliances, equipment, or external conditions.
+The LLM is **not used to perform the numerical forecasting**. It acts as an explanation layer on top of the machine learning pipeline.
 
-📁 Project Structure
+---
+
+## 📁 Project Structure
+
+```text
 Smart-Energy-Forecasting/
 │
 ├── data/
@@ -185,108 +235,165 @@ Smart-Energy-Forecasting/
 ├── requirements.txt
 ├── .gitignore
 └── README.md
-🛠️ Tech Stack
+```
 
-Languages
+---
 
-Python
+## 🛠️ Tech Stack
 
-Machine Learning
+**Languages**
 
-Pandas
-NumPy
-Scikit-learn
-Joblib
+* Python
 
-Generative AI
+**Machine Learning**
 
-Groq API
-openai/gpt-oss-120b
+* Pandas
+* NumPy
+* Scikit-learn
+* Joblib
 
-Data Visualization
+**Generative AI**
 
-Matplotlib
-Seaborn
+* Groq API
+* `openai/gpt-oss-120b`
 
-Development
+**Data Visualization**
 
-Jupyter Notebook
-VS Code
-Git/GitHub
-▶️ Running the Project
-1. Clone the repository
-git clone <your-repository-url>
+* Matplotlib
+* Seaborn
+
+**Development**
+
+* Jupyter Notebook
+* VS Code
+* Git
+* GitHub
+
+---
+
+## ▶️ Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone <YOUR_REPOSITORY_URL>
 cd Smart-Energy-Forecasting
-2. Create a virtual environment
+```
+
+### 2. Create a Virtual Environment
+
+```bash
 python -m venv venv
+```
 
 Activate it on Windows:
 
+```bash
 venv\Scripts\activate
-3. Install dependencies
+```
+
+### 3. Install Dependencies
+
+```bash
 pip install -r requirements.txt
-4. Set the Groq API key
+```
 
-Create a .env file or set the environment variable:
+### 4. Configure the Groq API Key
 
+Create a `.env` file:
+
+```env
 GROQ_API_KEY=your_api_key_here
+```
 
-Never commit the API key to GitHub.
+Never commit your API key to GitHub.
 
-5. Prepare the data
+### 5. Prepare the Dataset
 
-Run the data preparation scripts in order:
+Run the data preparation scripts:
 
+```bash
 python src/parse_tsf.py
 python src/prepare_data.py
 python src/create_features.py
-6. Train and save the models
+```
+
+### 6. Train the Models
+
+```bash
 python src/train_and_save_models.py
+```
 
 This generates:
 
+```text
 models/
 ├── load_forecast_model.pkl
 ├── peak_classifier.pkl
 └── peak_threshold.pkl
-7. Run the forecasting pipeline
+```
+
+### 7. Run the Forecasting Pipeline
+
+```bash
 python src/forecast_next.py
+```
 
-The script produces:
+The pipeline produces:
 
-Current load
-Next-hour forecast
-Peak probability
-Peak warning
-Peak threshold
-AI-generated energy insight
-8. Run the workload simulation
+* Current load
+* Next-hour forecast
+* Peak probability
+* Peak warning
+* Peak threshold
+* AI-generated energy insight
+
+### 8. Run Workload Simulation
+
+```bash
 python src/workload_shift.py
-🔐 Environment Variables
+```
 
-Create a local .env file:
+---
 
+## 🔐 Environment Variables
+
+Create a local `.env` file:
+
+```env
 GROQ_API_KEY=your_api_key_here
+```
 
-Add .env to .gitignore:
+Make sure `.env` is included in `.gitignore:
 
+```gitignore
 .env
 venv/
 __pycache__/
 *.pyc
-📌 Example Output
-Next-Hour Energy Forecast
----------------------------
+```
+
+---
+
+## 📌 Example Output
+
+### Next-Hour Energy Forecast
+
+```text
 Current time: 2014-12-31 23:00:01
 Forecast time: 2015-01-01 00:00:01
+
 Current load: 11.0 kW
 Predicted load: 11.32 kW
-Peak probability: 0.04 %
+
+Peak probability: 0.04%
 Peak threshold: 72.0 kW
 Peak warning: NO
+```
 
-AI Energy Assistant
----------------------------
+### AI Energy Assistant
+
+```text
 Expected demand:
 The load is projected to rise slightly from 11.00 kW
 to 11.32 kW in the next hour.
@@ -296,31 +403,56 @@ The upcoming hour is not a peak-demand period.
 
 Recommendation:
 No immediate peak-management action is indicated.
-🎯 Project Goals
+```
 
-This project demonstrates an end-to-end workflow combining:
+---
 
-Time-series feature engineering
-Machine learning forecasting
-Imbalanced classification
-Peak-demand analysis
-What-if workload simulation
-Generative AI
-Model-to-LLM integration
-⚠️ Limitations
-The current implementation uses one representative electricity time series.
-Weather, electricity pricing, holidays, and other external factors are not included.
-Workload shifting is a simulated scenario rather than real-world control.
-GenAI recommendations are grounded only in the numerical information supplied to the model.
-The project is intended for experimentation and demonstration, not operational electricity-grid control.
-📚 Dataset Source
+## 🎯 What This Project Demonstrates
 
-Electricity Load Diagrams 2011–2014 — UCI Machine Learning Repository
+This project combines several practical ML and GenAI concepts:
 
-Dataset DOI: 10.24432/C58C86
+* Time-series feature engineering
+* Lag-based forecasting
+* Gradient-boosting regression
+* Imbalanced classification
+* Peak-demand detection
+* What-if simulation
+* Model evaluation against a baseline
+* ML model persistence with Joblib
+* REST/API-based LLM integration
+* Prompt grounding
+* GenAI-assisted interpretation of ML outputs
+
+---
+
+## ⚠️ Limitations
+
+* The current implementation uses **one representative electricity time series** for the forecasting model.
+* Weather conditions are not included.
+* Electricity pricing is not included.
+* Holidays and special events are not explicitly modeled.
+* Workload shifting is a simulated scenario rather than real-world control.
+* The GenAI assistant only receives the numerical forecasting and simulation results supplied by the pipeline.
+* The system is intended for **experimentation and demonstration**, not operational electricity-grid control.
+
+---
+
+## 📚 Dataset Source
+
+**Electricity Load Diagrams 2011–2014 — UCI Machine Learning Repository**
+
+Dataset DOI:
+
+```text
+10.24432/C58C86
+```
 
 The hourly aggregated data used in this project is derived from the original electricity load dataset.
 
-👩‍💻 Author
+---
 
-Gayathri Gunturi
+## 👩‍💻 Author
+
+**Gayathri Gunturi**
+
+Built as an end-to-end **Machine Learning + Generative AI** project for electricity demand forecasting and energy analytics.
